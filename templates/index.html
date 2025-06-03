@@ -28,11 +28,16 @@
       gap: 1.5rem;
     }
 
+
     .button-group {
       display: flex;
       justify-content: space-evenly;
       gap: 1rem;
       flex-wrap: wrap;
+    }
+
+    .button-group button {
+      flex: 1 1 45%;
     }
 
     button {
@@ -95,6 +100,8 @@
     <div class="button-group">
       <button id="startBtn">🚓 Lancer la patrouille</button>
       <button id="stopBtn">🛑 Arrêter la patrouille</button>
+      <button id="cameraBtn">🎥 Démarrer la caméra</button>
+      <button id="stopCameraBtn">⛔ Stopper la caméra</button>
     </div>
 
     <div class="field-group">
@@ -177,6 +184,34 @@
       intruderCount += Math.random() < 0.3 ? 1 : 0;
       document.getElementById("intruderCount").value = intruderCount;
     }, 10000);
+
+    document.getElementById("cameraBtn").addEventListener("click", async () => {
+      try {
+        const res = await fetch("/send-command", {
+          method: "POST",
+          body: new URLSearchParams({ command: "start-camera" })
+        });
+
+        const text = await res.text();
+        showMessage(text);
+      } catch (err) {
+        showMessage("❌ Erreur lors du démarrage de la caméra.", 5000);
+      }
+    });
+
+    document.getElementById("stopCameraBtn").addEventListener("click", async () => {
+      try {
+        const res = await fetch("/send-command", {
+          method: "POST",
+          body: new URLSearchParams({ command: "stop-camera" })
+        });
+
+        const text = await res.text();
+        showMessage(text);
+      } catch (err) {
+        showMessage("❌ Erreur lors de l'arrêt de la caméra.", 5000);
+      }
+    });
   </script>
 </body>
 </html>

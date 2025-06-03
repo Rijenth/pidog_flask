@@ -15,15 +15,18 @@ def index():
 def send_command():
     command = request.form.get("command")
 
-    if command == 'start-patrol':
-        return 'start patrol function', 201;
-
-    if command == 'stop-patrol':
-        return 'stop patrol function', 201;
+    match command:
+        case 'start-patrol':
+            return 'start patrol function', 200
+        case 'stop-patrol':
+            return 'stop patrol function', 200
+        case 'start-camera':
+            return 'start-camera', 200
+        case 'stop-camera':
+            return 'stop-camera', 200
+        case str() if command:
+            return f"Commande '{command}' reçue", 200
     
-    if command:
-        return f"Commande '{command}' reçue", 200;
-
     return "Aucune commande reçue.", 400
 
 if __name__ == "__main__":
