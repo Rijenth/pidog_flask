@@ -1,1 +1,3 @@
 ./pidog
+__pycache__
+dog.log

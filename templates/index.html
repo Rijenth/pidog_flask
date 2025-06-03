@@ -2,45 +2,181 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Contrôle du Chien</title>
+  <title>Pidog – Robot de Surveillance</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    #response { margin-top: 1rem; font-weight: bold; color: green; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #343a40;
+      margin-bottom: 2rem;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-evenly;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex: 1 1 45%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #startBtn {
+      background-color: #198754;
+      color: white;
+    }
+
+    #stopBtn {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .field-group {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[readonly] {
+      background-color: #e9ecef;
+      border: 1px solid #ced4da;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    .info-box {
+      padding: 1rem;
+      border-left: 6px solid #0d6efd;
+      background-color: #e7f1ff;
+      color: #0d6efd;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>Envoyer une commande</h1>
-  <form id="commandForm">
-    <input type="text" id="commandInput" name="command" placeholder="Commande (ex: avance)" required />
-    <button type="submit">Envoyer</button>
-  </form>
+  <div class="container">
+    <h1>Pidog, le robot de surveillance</h1>
 
-  <div id="response"></div>
+    <div class="button-group">
+      <button id="startBtn">🚓 Lancer la patrouille</button>
+      <button id="stopBtn">🛑 Arrêter la patrouille</button>
+    </div>
+
+    <div class="field-group">
+      <label for="intruderCount">👁️ Intrus détectés :</label>
+      <input type="text" id="intruderCount" value="0" readonly />
+    </div>
+
+    <div class="field-group">
+      <label for="patrolDuration">⏱️ Durée de la patrouille (secondes) :</label>
+      <input type="text" id="patrolDuration" value="0" readonly />
+    </div>
+
+    <div class="field-group">
+       <label for="camera">Camera (TODO) :</label>
+    </div>
+
+    <div class="info-box" id="infoBox"></div>
+  </div>
 
   <script>
-    document.getElementById("commandForm").addEventListener("submit", async function (e) {
-      e.preventDefault(); // Empêche le rechargement
+    let patrolInterval = null;
+    let patrolSeconds = 0;
+    let intruderCount = 0;
 
-      const command = document.getElementById("commandInput").value;
-      const formData = new FormData();
-      formData.append("command", command);
+    const infoBox = document.getElementById("infoBox");
 
+    function showMessage(message, duration = 4000) {
+      infoBox.textContent = message;
+      infoBox.style.display = "block";
+      setTimeout(() => {
+        infoBox.textContent = "";
+        infoBox.style.display = "none";
+      }, duration);
+    }
+
+    document.getElementById("startBtn").addEventListener("click", async () => {
       try {
         const res = await fetch("/send-command", {
           method: "POST",
-          body: formData
+          body: new URLSearchParams({ command: "start-patrol" })
         });
 
         const text = await res.text();
-        document.getElementById("response").textContent = text;
-      } catch (err) {
-        document.getElementById("response").textContent = "Erreur lors de l’envoi de la commande.";
-        document.getElementById("response").style.color = "red";
-      }
+        showMessage(text);
 
-      // Vide le champ
-      document.getElementById("commandInput").value = "";
+        patrolSeconds = 0;
+        document.getElementById("patrolDuration").value = patrolSeconds;
+
+        if (patrolInterval) clearInterval(patrolInterval);
+        patrolInterval = setInterval(() => {
+          patrolSeconds += 1;
+          document.getElementById("patrolDuration").value = patrolSeconds;
+        }, 1000);
+      } catch (err) {
+        showMessage("❌ Erreur lors du lancement de la patrouille.", 5000);
+      }
     });
+
+    document.getElementById("stopBtn").addEventListener("click", async () => {
+      try {
+        const res = await fetch("/send-command", {
+          method: "POST",
+          body: new URLSearchParams({ command: "stop-patrol" })
+        });
+
+        const text = await res.text();
+        showMessage(text);
+
+        if (patrolInterval) clearInterval(patrolInterval);
+        patrolInterval = null;
+        patrolSeconds = 0;
+        document.getElementById("patrolDuration").value = patrolSeconds;
+      } catch (err) {
+        showMessage("❌ Erreur lors de l'arrêt de la patrouille.", 5000);
+      }
+    });
+
+    // Simulation de la detection du nombre d'intrus (à remplacer par détection réelle)
+    setInterval(() => {
+      intruderCount += Math.random() < 0.3 ? 1 : 0;
+      document.getElementById("intruderCount").value = intruderCount;
+    }, 10000);
   </script>
 </body>
 </html>

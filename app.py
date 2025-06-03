@@ -14,9 +14,16 @@ def index():
 @app.route("/send-command", methods=["POST"])
 def send_command():
     command = request.form.get("command")
+
+    if command == 'start-patrol':
+        return 'start patrol function', 201;
+
+    if command == 'stop-patrol':
+        return 'stop patrol function', 201;
+    
     if command:
-        logging.info(f"Donnée reçue : {command}")
-        return f"Commande '{command}' reçue et enregistrée dzadaz."
+        return f"Commande '{command}' reçue", 200;
+
     return "Aucune commande reçue.", 400
 
 if __name__ == "__main__":
