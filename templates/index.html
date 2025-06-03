@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Contrôle du Chien</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    #response { margin-top: 1rem; font-weight: bold; color: green; }
+  </style>
+</head>
+<body>
+  <h1>Envoyer une commande</h1>
+  <form id="commandForm">
+    <input type="text" id="commandInput" name="command" placeholder="Commande (ex: avance)" required />
+    <button type="submit">Envoyer</button>
+  </form>
+
+  <div id="response"></div>
+
+  <script>
+    document.getElementById("commandForm").addEventListener("submit", async function (e) {
+      e.preventDefault(); // Empêche le rechargement
+
+      const command = document.getElementById("commandInput").value;
+      const formData = new FormData();
+      formData.append("command", command);
+
+      try {
+        const res = await fetch("/send-command", {
+          method: "POST",
+          body: formData
+        });
+
+        const text = await res.text();
+        document.getElementById("response").textContent = text;
+      } catch (err) {
+        document.getElementById("response").textContent = "Erreur lors de l’envoi de la commande.";
+        document.getElementById("response").style.color = "red";
+      }
+
+      // Vide le champ
+      document.getElementById("commandInput").value = "";
+    });
+  </script>
+</body>
+</html>
