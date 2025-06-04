@@ -9,6 +9,11 @@
       background-color: #f0f2f5;
       padding: 2rem;
       color: #333;
+      display: flex;
+      justify-content: center;
+      /* max-width: 1024px; */
+      margin: auto;
+      gap: 2rem;
     }
 
     h1 {
@@ -18,20 +23,25 @@
     }
 
     .container {
-      max-width: 700px;
-      margin: auto;
       background-color: #fff;
       padding: 2rem;
       border-radius: 16px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
       display: grid;
       gap: 1.5rem;
+      flex: auto;
+    }
+
+    .flex-1 {
+      flex: 1;
     }
 
     .button-group {
+      max-width: 280px;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-evenly;
+      flex-direction: column;
+      /* flex-wrap: wrap;
+      justify-content: space-evenly; */
       gap: 1rem;
     }
 
@@ -42,11 +52,22 @@
       border-radius: 8px;
       font-size: 1rem;
       cursor: pointer;
+      background-color: white;
       transition: background-color 0.3s ease;
     }
 
     #startBtn { background-color: #198754; color: white; }
     #stopBtn { background-color: #dc3545; color: white; }
+    #patrolToggleBtn {
+      color: white;
+      background-color: #198754; /* changera dynamiquement */
+    }
+
+    #cameraToggleBtn {
+      color: white;
+      background-color: #0d6efd; /* changera dynamiquement */
+    }
+
 
     button:hover { opacity: 0.9; }
 
@@ -95,17 +116,24 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="flex-1"></div>
+
+  <main class="container">
     <h1>Pidog, le robot de surveillance</h1>
 
-    <div class="button-group">
-      <button id="startBtn">🚓 Lancer la patrouille</button>
-      <button id="stopBtn">🛑 Arrêter la patrouille</button>
-      <button id="cameraBtn">🎥 Démarrer la caméra</button>
-      <button id="stopCameraBtn">⛔ Stopper la caméra</button>
-      <button id="detectFaceBtn">🧠 Vérifier présence</button>
-      <button id="recognizeBtn">🔎 Reconnaître un visage</button>
+    <div class="field-group">
+      <label for="camera">Caméra :</label>
+      <video 
+        id="camera" 
+        width="100%" 
+        height="240" 
+        autoplay 
+        playsinline 
+        style="border-radius:8px; background:#000;">
+      </video>
     </div>
+
+    <div class="info-box" id="infoBox"></div>
 
     <div class="field-group">
       <label for="intruderCount">👁️ Intrus détectés :</label>
@@ -125,26 +153,24 @@
       </div>
     </div>
 
-    <div class="field-group">
-      <label for="camera">Caméra :</label>
-      <video 
-        id="camera" 
-        width="100%" 
-        height="240" 
-        autoplay 
-        playsinline 
-        style="border-radius:8px; background:#000;">
-      </video>
-    </div>
+  </main>
 
-    <div class="info-box" id="infoBox"></div>
-  </div>
+  <aside class="flex-1">
+    <div class="button-group">
+      <button id="patrolToggleBtn">🚓 Lancer la patrouille</button>
+      <button id="cameraToggleBtn">🎥 Démarrer la caméra</button>
+      <button id="detectFaceBtn" style="background-color: #ffc107;">🧠 Vérifier présence</button>
+      <button id="recognizeBtn" style="background-color: #6610f2; color: white;">🔎 Reconnaître un visage</button>
+    </div>
+  </aside>
 
   <script>
     let patrolInterval = null;
     let patrolSeconds = 0;
     let intruderCount = 0;
     let cameraStream = null;
+    let isPatrolRunning = false;
+    let isCameraRunning = false;
 
     const video = document.getElementById('camera');
     const infoBox = document.getElementById("infoBox");
@@ -175,51 +201,67 @@
       return res.json();
     }
 
-    document.getElementById("startBtn").addEventListener("click", async () => {
-      const res = await fetch("/send-command", {
-        method: "POST",
-        body: new URLSearchParams({ command: "start-patrol" })
-      });
-      showMessage(await res.text());
-      patrolSeconds = 0;
-      document.getElementById("patrolDuration").value = 0;
-      clearInterval(patrolInterval);
-      patrolInterval = setInterval(() => {
-        patrolSeconds++;
-        document.getElementById("patrolDuration").value = patrolSeconds;
-      }, 1000);
-    });
+    const patrolBtn = document.getElementById("patrolToggleBtn");
+    const cameraBtn = document.getElementById("cameraToggleBtn");
 
-    document.getElementById("stopBtn").addEventListener("click", async () => {
-      const res = await fetch("/send-command", {
-        method: "POST",
-        body: new URLSearchParams({ command: "stop-patrol" })
-      });
-      showMessage(await res.text());
-      clearInterval(patrolInterval);
-      patrolSeconds = 0;
-      document.getElementById("patrolDuration").value = 0;
-    });
+    patrolBtn.addEventListener("click", async () => {
+      if (!isPatrolRunning) {
+        const res = await fetch("/send-command", {
+          method: "POST",
+          body: new URLSearchParams({ command: "start-patrol" }),
+        });
+        showMessage(await res.text());
+        patrolBtn.textContent = "🛑 Arrêter la patrouille";
+        patrolBtn.style.backgroundColor = "#dc3545";
+        isPatrolRunning = true;
 
-    document.getElementById("cameraBtn").addEventListener("click", async () => {
-      if (cameraStream) return showMessage("Caméra déjà active.");
-      try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = cameraStream;
-        video.play();
-        showMessage("Caméra démarrée !");
-      } catch (err) {
-        showMessage("❌ Erreur caméra : " + err.message, 6000);
+        patrolSeconds = 0;
+        document.getElementById("patrolDuration").value = 0;
+        clearInterval(patrolInterval);
+        patrolInterval = setInterval(() => {
+          patrolSeconds++;
+          document.getElementById("patrolDuration").value = patrolSeconds;
+        }, 1000);
+      } else {
+        const res = await fetch("/send-command", {
+          method: "POST",
+          body: new URLSearchParams({ command: "stop-patrol" }),
+        });
+        showMessage(await res.text());
+        clearInterval(patrolInterval);
+        patrolSeconds = 0;
+        document.getElementById("patrolDuration").value = 0;
+
+        patrolBtn.textContent = "🚓 Lancer la patrouille";
+        patrolBtn.style.backgroundColor = "#198754";
+        isPatrolRunning = false;
       }
     });
 
-    document.getElementById("stopCameraBtn").addEventListener("click", () => {
-      if (!cameraStream) return showMessage("Caméra non active.");
-      cameraStream.getTracks().forEach(track => track.stop());
-      video.srcObject = null;
-      cameraStream = null;
-      showMessage("Caméra arrêtée.");
+    cameraBtn.addEventListener("click", async () => {
+      if (!isCameraRunning) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          video.srcObject = cameraStream;
+          video.play();
+          showMessage("Caméra démarrée !");
+          cameraBtn.textContent = "⛔ Stopper la caméra";
+          cameraBtn.style.backgroundColor = "#dc3545";
+          isCameraRunning = true;
+        } catch (err) {
+          showMessage("❌ Erreur caméra : " + err.message, 6000);
+        }
+      } else {
+        cameraStream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        cameraStream = null;
+        showMessage("Caméra arrêtée.");
+        cameraBtn.textContent = "🎥 Démarrer la caméra";
+        cameraBtn.style.backgroundColor = "#0d6efd";
+        isCameraRunning = false;
+      }
     });
+
 
     document.getElementById("detectFaceBtn").addEventListener("click", async () => {
       const image = captureImage();
@@ -241,6 +283,7 @@
       } else {
         showMessage("❌ Erreur : " + (res.error || "Inconnue"), 5000);
       }
+      document.getElementById("addName").value = "";
     });
 
     document.getElementById("recognizeBtn").addEventListener("click", async () => {
