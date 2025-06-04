@@ -115,7 +115,13 @@
     </div>
 
     <div class="field-group">
-       <label for="camera">Camera (TODO) :</label>
+      <label for="camera">Caméra :</label>
+      <video 
+        id="camera" 
+        width="100%" 
+        height="240" 
+        autoplay playsinline style="border-radius:8px; background:#000;">
+      </video>
     </div>
 
     <div class="info-box" id="infoBox"></div>
@@ -185,33 +191,40 @@
       document.getElementById("intruderCount").value = intruderCount;
     }, 10000);
 
+    let cameraStream = null;
+    const video = document.getElementById('camera');
+
     document.getElementById("cameraBtn").addEventListener("click", async () => {
-      try {
-        const res = await fetch("/send-command", {
-          method: "POST",
-          body: new URLSearchParams({ command: "start-camera" })
-        });
-
-        const text = await res.text();
-        showMessage(text);
-      } catch (err) {
-        showMessage("❌ Erreur lors du démarrage de la caméra.", 5000);
+      if (cameraStream) {
+        showMessage("La caméra est déjà activée.");
+        return;
+      }
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          video.srcObject = cameraStream;
+          video.play();
+          showMessage("Caméra démarrée !");
+        } catch (err) {
+          showMessage("❌ Impossible d'accéder à la caméra : " + err, 7000);
+        }
+      } else {
+        showMessage("❌ getUserMedia n'est pas supporté sur ce navigateur.", 7000);
       }
     });
 
-    document.getElementById("stopCameraBtn").addEventListener("click", async () => {
-      try {
-        const res = await fetch("/send-command", {
-          method: "POST",
-          body: new URLSearchParams({ command: "stop-camera" })
-        });
-
-        const text = await res.text();
-        showMessage(text);
-      } catch (err) {
-        showMessage("❌ Erreur lors de l'arrêt de la caméra.", 5000);
+    document.getElementById("stopCameraBtn").addEventListener("click", () => {
+      if (cameraStream) {
+        // Arrête tous les tracks vidéo
+        cameraStream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        cameraStream = null;
+        showMessage("Caméra arrêtée.");
+      } else {
+        showMessage("La caméra n'est pas active.");
       }
     });
+    
   </script>
 </body>
 </html>
