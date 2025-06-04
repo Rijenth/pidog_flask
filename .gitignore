@@ -1,3 +1,5 @@
 ./pidog
 __pycache__
 dog.log
+venv
+known_faces/**

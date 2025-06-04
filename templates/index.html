@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Pidog – Robot de Surveillance</title>
   <style>
     body {
@@ -18,7 +18,7 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
       background-color: #fff;
       padding: 2rem;
@@ -28,16 +28,11 @@
       gap: 1.5rem;
     }
 
-
     .button-group {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-evenly;
       gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .button-group button {
-      flex: 1 1 45%;
     }
 
     button {
@@ -50,35 +45,25 @@
       transition: background-color 0.3s ease;
     }
 
-    #startBtn {
-      background-color: #198754;
-      color: white;
-    }
+    #startBtn { background-color: #198754; color: white; }
+    #stopBtn { background-color: #dc3545; color: white; }
 
-    #stopBtn {
-      background-color: #dc3545;
-      color: white;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
+    button:hover { opacity: 0.9; }
 
     .field-group {
       display: grid;
       gap: 0.5rem;
     }
 
-    label {
-      font-weight: bold;
+    input, label {
+      font-size: 1rem;
     }
 
-    input[readonly] {
+    input[type="text"], input[readonly] {
       background-color: #e9ecef;
       border: 1px solid #ced4da;
       padding: 0.5rem;
       border-radius: 4px;
-      font-size: 1rem;
       width: 100%;
     }
 
@@ -91,6 +76,22 @@
       font-size: 0.95rem;
       display: none;
     }
+
+    .form-add {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .form-add input {
+      flex: 1;
+    }
+
+    .form-add button {
+      flex: none;
+      background-color: #0d6efd;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -102,6 +103,8 @@
       <button id="stopBtn">🛑 Arrêter la patrouille</button>
       <button id="cameraBtn">🎥 Démarrer la caméra</button>
       <button id="stopCameraBtn">⛔ Stopper la caméra</button>
+      <button id="detectFaceBtn">🧠 Vérifier présence</button>
+      <button id="recognizeBtn">🔎 Reconnaître un visage</button>
     </div>
 
     <div class="field-group">
@@ -115,12 +118,22 @@
     </div>
 
     <div class="field-group">
+      <label for="addName">➕ Ajouter une personne autorisée :</label>
+      <div class="form-add">
+        <input type="text" id="addName" placeholder="Nom de la personne" />
+        <button id="addFaceBtn">Enregistrer visage</button>
+      </div>
+    </div>
+
+    <div class="field-group">
       <label for="camera">Caméra :</label>
       <video 
         id="camera" 
         width="100%" 
         height="240" 
-        autoplay playsinline style="border-radius:8px; background:#000;">
+        autoplay 
+        playsinline 
+        style="border-radius:8px; background:#000;">
       </video>
     </div>
 
@@ -131,7 +144,9 @@
     let patrolInterval = null;
     let patrolSeconds = 0;
     let intruderCount = 0;
+    let cameraStream = null;
 
+    const video = document.getElementById('camera');
     const infoBox = document.getElementById("infoBox");
 
     function showMessage(message, duration = 4000) {
@@ -143,88 +158,110 @@
       }, duration);
     }
 
+    function captureImage() {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      return canvas.toDataURL('image/jpeg');
+    }
+
+    async function sendToServer(endpoint, payload) {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      return res.json();
+    }
+
     document.getElementById("startBtn").addEventListener("click", async () => {
-      try {
-        const res = await fetch("/send-command", {
-          method: "POST",
-          body: new URLSearchParams({ command: "start-patrol" })
-        });
-
-        const text = await res.text();
-        showMessage(text);
-
-        patrolSeconds = 0;
+      const res = await fetch("/send-command", {
+        method: "POST",
+        body: new URLSearchParams({ command: "start-patrol" })
+      });
+      showMessage(await res.text());
+      patrolSeconds = 0;
+      document.getElementById("patrolDuration").value = 0;
+      clearInterval(patrolInterval);
+      patrolInterval = setInterval(() => {
+        patrolSeconds++;
         document.getElementById("patrolDuration").value = patrolSeconds;
-
-        if (patrolInterval) clearInterval(patrolInterval);
-        patrolInterval = setInterval(() => {
-          patrolSeconds += 1;
-          document.getElementById("patrolDuration").value = patrolSeconds;
-        }, 1000);
-      } catch (err) {
-        showMessage("❌ Erreur lors du lancement de la patrouille.", 5000);
-      }
+      }, 1000);
     });
 
     document.getElementById("stopBtn").addEventListener("click", async () => {
-      try {
-        const res = await fetch("/send-command", {
-          method: "POST",
-          body: new URLSearchParams({ command: "stop-patrol" })
-        });
-
-        const text = await res.text();
-        showMessage(text);
-
-        if (patrolInterval) clearInterval(patrolInterval);
-        patrolInterval = null;
-        patrolSeconds = 0;
-        document.getElementById("patrolDuration").value = patrolSeconds;
-      } catch (err) {
-        showMessage("❌ Erreur lors de l'arrêt de la patrouille.", 5000);
-      }
+      const res = await fetch("/send-command", {
+        method: "POST",
+        body: new URLSearchParams({ command: "stop-patrol" })
+      });
+      showMessage(await res.text());
+      clearInterval(patrolInterval);
+      patrolSeconds = 0;
+      document.getElementById("patrolDuration").value = 0;
     });
 
-    // Simulation de la detection du nombre d'intrus (à remplacer par détection réelle)
-    setInterval(() => {
-      intruderCount += Math.random() < 0.3 ? 1 : 0;
-      document.getElementById("intruderCount").value = intruderCount;
-    }, 10000);
-
-    let cameraStream = null;
-    const video = document.getElementById('camera');
-
     document.getElementById("cameraBtn").addEventListener("click", async () => {
-      if (cameraStream) {
-        showMessage("La caméra est déjà activée.");
-        return;
-      }
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        try {
-          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-          video.srcObject = cameraStream;
-          video.play();
-          showMessage("Caméra démarrée !");
-        } catch (err) {
-          showMessage("❌ Impossible d'accéder à la caméra : " + err, 7000);
-        }
-      } else {
-        showMessage("❌ getUserMedia n'est pas supporté sur ce navigateur.", 7000);
+      if (cameraStream) return showMessage("Caméra déjà active.");
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = cameraStream;
+        video.play();
+        showMessage("Caméra démarrée !");
+      } catch (err) {
+        showMessage("❌ Erreur caméra : " + err.message, 6000);
       }
     });
 
     document.getElementById("stopCameraBtn").addEventListener("click", () => {
-      if (cameraStream) {
-        // Arrête tous les tracks vidéo
-        cameraStream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        cameraStream = null;
-        showMessage("Caméra arrêtée.");
+      if (!cameraStream) return showMessage("Caméra non active.");
+      cameraStream.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+      cameraStream = null;
+      showMessage("Caméra arrêtée.");
+    });
+
+    document.getElementById("detectFaceBtn").addEventListener("click", async () => {
+      const image = captureImage();
+      const res = await sendToServer("/detect-face", { image });
+      if (res.someone_present) {
+        showMessage(`👤 Présence détectée (${res.faces_detected} visage(s))`);
       } else {
-        showMessage("La caméra n'est pas active.");
+        showMessage("✅ Aucun visage détecté");
       }
     });
-    
+
+    document.getElementById("addFaceBtn").addEventListener("click", async () => {
+      const name = document.getElementById("addName").value.trim();
+      if (!name) return showMessage("⚠️ Veuillez entrer un nom.");
+      const image = captureImage();
+      const res = await sendToServer("/add-face", { name, image });
+      if (res.status === "saved") {
+        showMessage(`✅ Visage de ${res.name} enregistré`);
+      } else {
+        showMessage("❌ Erreur : " + (res.error || "Inconnue"), 5000);
+      }
+    });
+
+    document.getElementById("recognizeBtn").addEventListener("click", async () => {
+      const image = captureImage();
+      const res = await sendToServer("/recognize", { image });
+      if (res.status === "authorized") {
+        showMessage(`✅ Visage reconnu : ${res.person}`);
+      } else if (res.status === "intruder") {
+        showMessage("❌ Intrus détecté !");
+        intruderCount++;
+        document.getElementById("intruderCount").value = intruderCount;
+      } else {
+        showMessage("⚠️ Aucun visage détecté");
+      }
+    });
+
+    // Détection simulée toutes les 10s
+    setInterval(() => {
+      intruderCount += Math.random() < 0.2 ? 1 : 0;
+      document.getElementById("intruderCount").value = intruderCount;
+    }, 10000);
   </script>
 </body>
 </html>
