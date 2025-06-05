@@ -39,13 +39,14 @@ const awakeBtn = document.getElementById("awakeDog");
 
 awakeBtn.addEventListener("click", async() => {
     const command = dogIsAwake ? 'sleep-dog' : 'awake-dog';
-    const res = await fetch("/awake", {
+    const res = await fetch("/send-command", {
             method: "POST",
             body: new URLSearchParams({ command: command}),
         });
-    showMessage(await res.text());
-    awakeBtn.textContent = dogIsAwake ? "Arrêter PiDog" : "Éveiller PiDog";
-    awakeBtn.style.backgroundColor = dogIsAwake ? "#dc3545" :  "#198754";
+    const message = await res.text();
+    showMessage(message);
+    awakeBtn.textContent = message === 'awake-dog' ? "Arrêter PiDog" : "Éveiller PiDog";
+    awakeBtn.style.backgroundColor = message === 'awake-dog' ? "#dc3545" : "#198754";
     dogIsAwake = !dogIsAwake;
 })
 

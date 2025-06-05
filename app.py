@@ -1,23 +1,11 @@
 from flask import Flask, render_template, request, Response
 #from routes.face_routes import face_bp
-#from routes.command_routes import command_bp
+from routes.command_routes import command_bp
+from robot import close_dog, PIDOG_AVAILABLE  # appel indirect à pidog
 import os
 import logging
 import cv2
 import base64
-
-# Conditionnelle : Activer l'utilisation de Pidog si USE_PIDOG est à true
-USE_PIDOG = os.environ.get("USE_PIDOG", "false").lower() == "true"
-if USE_PIDOG:
-    from pidog import Pidog
-    from preset_actions import pant
-    from preset_actions import body_twisting
-    from time import sleep
-    my_dog = Pidog(head_init_angles=[0, 0, -30])
-    sleep(1)
-else:
-    my_dog = None
-    print("⚠️  Pidog désactivé : robot non initialisé.")
 
 app = Flask(__name__)
 
@@ -34,7 +22,7 @@ face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_fronta
 
 # Routes
 #app.register_blueprint(face_bp)
-#app.register_blueprint(command_bp)
+app.register_blueprint(command_bp)
 
 @app.route("/", methods=["GET"])
 def index():
@@ -139,5 +127,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        if USE_PIDOG and my_dog:
-            my_dog.close()
+        if PIDOG_AVAILABLE:
+            close_dog()
