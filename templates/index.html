@@ -3,117 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Pidog – Robot de Surveillance</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f2f5;
-      padding: 2rem;
-      color: #333;
-      display: flex;
-      justify-content: center;
-      /* max-width: 1024px; */
-      margin: auto;
-      gap: 2rem;
-    }
-
-    h1 {
-      text-align: center;
-      color: #343a40;
-      margin-bottom: 2rem;
-    }
-
-    .container {
-      background-color: #fff;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-      display: grid;
-      gap: 1.5rem;
-      flex: auto;
-    }
-
-    .flex-1 {
-      flex: 1;
-    }
-
-    .button-group {
-      max-width: 280px;
-      display: flex;
-      flex-direction: column;
-      /* flex-wrap: wrap;
-      justify-content: space-evenly; */
-      gap: 1rem;
-    }
-
-    button {
-      flex: 1 1 45%;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      background-color: white;
-      transition: background-color 0.3s ease;
-    }
-
-    #startBtn { background-color: #198754; color: white; }
-    #stopBtn { background-color: #dc3545; color: white; }
-    #patrolToggleBtn {
-      color: white;
-      background-color: #198754; /* changera dynamiquement */
-    }
-
-    #cameraToggleBtn {
-      color: white;
-      background-color: #0d6efd; /* changera dynamiquement */
-    }
-
-
-    button:hover { opacity: 0.9; }
-
-    .field-group {
-      display: grid;
-      gap: 0.5rem;
-    }
-
-    input, label {
-      font-size: 1rem;
-    }
-
-    input[type="text"], input[readonly] {
-      background-color: #e9ecef;
-      border: 1px solid #ced4da;
-      padding: 0.5rem;
-      border-radius: 4px;
-      width: 100%;
-    }
-
-    .info-box {
-      padding: 1rem;
-      border-left: 6px solid #0d6efd;
-      background-color: #e7f1ff;
-      color: #0d6efd;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      display: none;
-    }
-
-    .form-add {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
-
-    .form-add input {
-      flex: 1;
-    }
-
-    .form-add button {
-      flex: none;
-      background-color: #0d6efd;
-      color: white;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
 </head>
 <body>
   <div class="flex-1"></div>
@@ -122,189 +12,46 @@
     <h1>Pidog, le robot de surveillance</h1>
 
     <div class="field-group">
-      <label for="camera">Caméra :</label>
-      <video 
-        id="camera" 
-        width="100%" 
-        height="240" 
-        autoplay 
-        playsinline 
-        style="border-radius:8px; background:#000;">
-      </video>
+      <video id="camera" autoplay playsinline></video>
     </div>
 
     <div class="info-box" id="infoBox"></div>
 
-    <div class="field-group">
-      <label for="intruderCount">👁️ Intrus détectés :</label>
-      <input type="text" id="intruderCount" value="0" readonly />
-    </div>
+    <div class="form-inputs--container">
+      <div class="field-group">
+        <label for="intruderCount">👁️ Intrus détectés :</label>
+        <input type="text" id="intruderCount" value="0" readonly />
+      </div>
 
-    <div class="field-group">
-      <label for="patrolDuration">⏱️ Durée de la patrouille (secondes) :</label>
-      <input type="text" id="patrolDuration" value="0" readonly />
-    </div>
+      <div class="field-group">
+        <label for="patrolDuration">⏱️ Durée de la patrouille (secondes) :</label>
+        <input type="text" id="patrolDuration" value="0" readonly />
+      </div>
 
-    <div class="field-group">
-      <label for="addName">➕ Ajouter une personne autorisée :</label>
-      <div class="form-add">
-        <input type="text" id="addName" placeholder="Nom de la personne" />
-        <button id="addFaceBtn">Enregistrer visage</button>
+      <div class="field-group">
+        <label for="addName">➕ Ajouter une personne autorisée :</label>
+        <div class="form-add">
+          <input type="text" id="addName" placeholder="Nom de la personne" />
+          <button id="addFaceBtn">Enregistrer visage</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>👥 Visages enregistrés :</label>
+        <ul id="faceList"></ul>
       </div>
     </div>
-
   </main>
 
   <aside class="flex-1">
     <div class="button-group">
       <button id="patrolToggleBtn">🚓 Lancer la patrouille</button>
       <button id="cameraToggleBtn">🎥 Démarrer la caméra</button>
-      <button id="detectFaceBtn" style="background-color: #ffc107;">🧠 Vérifier présence</button>
-      <button id="recognizeBtn" style="background-color: #6610f2; color: white;">🔎 Reconnaître un visage</button>
+      <button id="detectFaceBtn" class="btn-yellow hidden">🧠 Vérifier présence</button>
+      <button id="recognizeBtn" class="btn-purple hidden">🔎 Reconnaître un visage</button>
     </div>
   </aside>
 
-  <script>
-    let patrolInterval = null;
-    let patrolSeconds = 0;
-    let intruderCount = 0;
-    let cameraStream = null;
-    let isPatrolRunning = false;
-    let isCameraRunning = false;
-
-    const video = document.getElementById('camera');
-    const infoBox = document.getElementById("infoBox");
-
-    function showMessage(message, duration = 4000) {
-      infoBox.textContent = message;
-      infoBox.style.display = "block";
-      setTimeout(() => {
-        infoBox.textContent = "";
-        infoBox.style.display = "none";
-      }, duration);
-    }
-
-    function captureImage() {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      return canvas.toDataURL('image/jpeg');
-    }
-
-    async function sendToServer(endpoint, payload) {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      return res.json();
-    }
-
-    const patrolBtn = document.getElementById("patrolToggleBtn");
-    const cameraBtn = document.getElementById("cameraToggleBtn");
-
-    patrolBtn.addEventListener("click", async () => {
-      if (!isPatrolRunning) {
-        const res = await fetch("/send-command", {
-          method: "POST",
-          body: new URLSearchParams({ command: "start-patrol" }),
-        });
-        showMessage(await res.text());
-        patrolBtn.textContent = "🛑 Arrêter la patrouille";
-        patrolBtn.style.backgroundColor = "#dc3545";
-        isPatrolRunning = true;
-
-        patrolSeconds = 0;
-        document.getElementById("patrolDuration").value = 0;
-        clearInterval(patrolInterval);
-        patrolInterval = setInterval(() => {
-          patrolSeconds++;
-          document.getElementById("patrolDuration").value = patrolSeconds;
-        }, 1000);
-      } else {
-        const res = await fetch("/send-command", {
-          method: "POST",
-          body: new URLSearchParams({ command: "stop-patrol" }),
-        });
-        showMessage(await res.text());
-        clearInterval(patrolInterval);
-        patrolSeconds = 0;
-        document.getElementById("patrolDuration").value = 0;
-
-        patrolBtn.textContent = "🚓 Lancer la patrouille";
-        patrolBtn.style.backgroundColor = "#198754";
-        isPatrolRunning = false;
-      }
-    });
-
-    cameraBtn.addEventListener("click", async () => {
-      if (!isCameraRunning) {
-        try {
-          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-          video.srcObject = cameraStream;
-          video.play();
-          showMessage("Caméra démarrée !");
-          cameraBtn.textContent = "⛔ Stopper la caméra";
-          cameraBtn.style.backgroundColor = "#dc3545";
-          isCameraRunning = true;
-        } catch (err) {
-          showMessage("❌ Erreur caméra : " + err.message, 6000);
-        }
-      } else {
-        cameraStream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        cameraStream = null;
-        showMessage("Caméra arrêtée.");
-        cameraBtn.textContent = "🎥 Démarrer la caméra";
-        cameraBtn.style.backgroundColor = "#0d6efd";
-        isCameraRunning = false;
-      }
-    });
-
-
-    document.getElementById("detectFaceBtn").addEventListener("click", async () => {
-      const image = captureImage();
-      const res = await sendToServer("/detect-face", { image });
-      if (res.someone_present) {
-        showMessage(`👤 Présence détectée (${res.faces_detected} visage(s))`);
-      } else {
-        showMessage("✅ Aucun visage détecté");
-      }
-    });
-
-    document.getElementById("addFaceBtn").addEventListener("click", async () => {
-      const name = document.getElementById("addName").value.trim();
-      if (!name) return showMessage("⚠️ Veuillez entrer un nom.");
-      const image = captureImage();
-      const res = await sendToServer("/add-face", { name, image });
-      if (res.status === "saved") {
-        showMessage(`✅ Visage de ${res.name} enregistré`);
-      } else {
-        showMessage("❌ Erreur : " + (res.error || "Inconnue"), 5000);
-      }
-      document.getElementById("addName").value = "";
-    });
-
-    document.getElementById("recognizeBtn").addEventListener("click", async () => {
-      const image = captureImage();
-      const res = await sendToServer("/recognize", { image });
-      if (res.status === "authorized") {
-        showMessage(`✅ Visage reconnu : ${res.person}`);
-      } else if (res.status === "intruder") {
-        showMessage("❌ Intrus détecté !");
-        intruderCount++;
-        document.getElementById("intruderCount").value = intruderCount;
-      } else {
-        showMessage("⚠️ Aucun visage détecté");
-      }
-    });
-
-    // Détection simulée toutes les 10s
-    setInterval(() => {
-      intruderCount += Math.random() < 0.2 ? 1 : 0;
-      document.getElementById("intruderCount").value = intruderCount;
-    }, 10000);
-  </script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

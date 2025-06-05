@@ -1,10 +1,11 @@
-from flask import Flask, request, render_template, jsonify
+import base64
 import logging
 import os
+
 import cv2
-import numpy as np
-import base64
 import face_recognition
+import numpy as np
+from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
@@ -62,6 +63,24 @@ def detect_face():
         "someone_present": len(faces) > 0
     })
 
+@app.route("/list-faces", methods=["GET"])
+def list_faces():
+    faces = [f.replace(".npy", "") for f in os.listdir(KNOWN_FACE_DIR) if f.endswith(".npy")]
+    return jsonify(faces)
+
+@app.route("/delete-face", methods=["POST"])
+def delete_face():
+    data = request.json
+    name = data.get("name")
+    if not name:
+        return jsonify({"error": "Nom manquant"}), 400
+
+    file_path = os.path.join(KNOWN_FACE_DIR, f"{name}.npy")
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return jsonify({"status": "deleted", "name": name})
+    else:
+        return jsonify({"error": "Fichier introuvable"}), 404
 
 def save_face_encoding(name, encoding):
     path = os.path.join(KNOWN_FACE_DIR, f"{name}.npy")

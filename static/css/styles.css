@@ -1,0 +1,177 @@
+/* === GLOBAL === */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    padding: 2rem;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    margin: auto;
+    gap: 2rem;
+}
+
+/* === STRUCTURE === */
+h1 {
+    text-align: center;
+    color: #343a40;
+    margin-bottom: 1rem;
+}
+
+.container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    display: grid;
+    gap: 3rem;
+    flex: auto;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+/* === FORM & INPUT === */
+.form-inputs--container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.field-group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+input,
+label {
+    font-size: 1rem;
+}
+
+input[type='text'],
+input[readonly] {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    padding: 0.5rem;
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* === CAMERA === */
+#camera {
+    width: 720px;
+    aspect-ratio: 16 / 9;
+    max-width: 100%;
+    border-radius: 8px;
+    background: #000;
+    transform: scaleX(-1);
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+/* === BUTTONS === */
+.button-group {
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+button {
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+#patrolToggleBtn {
+    background-color: #198754;
+    color: white;
+}
+
+#cameraToggleBtn {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.btn-yellow {
+    background-color: #ffc107;
+}
+
+.btn-purple {
+    background-color: #6610f2;
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+/* === LIST === */
+#faceList {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+#faceList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.face-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #dc3545;
+    border: none;
+    color: white;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.face-delete-btn:hover {
+    background-color: #b02a37;
+}
+
+/* === INFO BOX === */
+.info-box {
+    padding: 1rem;
+    border-left: 6px solid #0d6efd;
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    display: none;
+}
+
+.form-add {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.form-add input {
+    flex: 1;
+}
+
+.form-add button {
+    background-color: #0d6efd;
+    color: white;
+}
