@@ -1,0 +1,109 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    padding: 2rem;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    /* max-width: 1024px; */
+    margin: auto;
+    gap: 2rem;
+}
+
+h1 {
+    text-align: center;
+    color: #343a40;
+    margin-bottom: 2rem;
+}
+
+.container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    display: grid;
+    gap: 1.5rem;
+    flex: auto;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.button-group {
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    /* flex-wrap: wrap;
+    justify-content: space-evenly; */
+    gap: 1rem;
+}
+
+button {
+    flex: 1 1 45%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    background-color: white;
+    transition: background-color 0.3s ease;
+}
+
+#startBtn { background-color: #198754; color: white; }
+#stopBtn { background-color: #dc3545; color: white; }
+#patrolToggleBtn {
+    color: white;
+    background-color: #198754; /* changera dynamiquement */
+}
+
+#cameraToggleBtn {
+    color: white;
+    background-color: #0d6efd; /* changera dynamiquement */
+}
+
+
+button:hover { opacity: 0.9; }
+
+.field-group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+input, label {
+    font-size: 1rem;
+}
+
+input[type="text"], input[readonly] {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    padding: 0.5rem;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.info-box {
+    padding: 1rem;
+    border-left: 6px solid #0d6efd;
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    display: none;
+}
+
+.form-add {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.form-add input {
+    flex: 1;
+}
+
+.form-add button {
+    flex: none;
+    background-color: #0d6efd;
+    color: white;
+}
