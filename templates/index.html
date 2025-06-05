@@ -13,14 +13,12 @@
 
     <div class="field-group">
       <label for="camera">Caméra :</label>
-      <video 
+      <img 
         id="camera" 
+        src="{{ url_for('video_feed') }}" 
         width="100%" 
         height="240" 
-        autoplay 
-        playsinline 
-        style="border-radius:8px; background:#000;">
-      </video>
+        style="border-radius:8px; background:#000;" />
     </div>
 
     <div class="info-box" id="infoBox"></div>
@@ -49,7 +47,7 @@
     <div class="button-group">
       <button id="awakeDog">Éveiller PiDog</button>
       <button id="patrolToggleBtn">🚓 Lancer la patrouille</button>
-      <button id="cameraToggleBtn">🎥 Démarrer la caméra</button>
+      <!-- <button id="cameraToggleBtn">🎥 Démarrer la caméra</button> -->
       <button id="detectFaceBtn" style="background-color: #ffc107;">🧠 Vérifier présence</button>
       <button id="recognizeBtn" style="background-color: #6610f2; color: white;">🔎 Reconnaître un visage</button>
     </div>

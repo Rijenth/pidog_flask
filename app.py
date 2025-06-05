@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Response
 #from routes.face_routes import face_bp
 #from routes.command_routes import command_bp
 import os
 import logging
 import cv2
+import base64
 
 # Conditionnelle : Activer l'utilisation de Pidog si USE_PIDOG est à true
 USE_PIDOG = os.environ.get("USE_PIDOG", "false").lower() == "true"
@@ -97,6 +98,40 @@ def send_command():
             return f"Commande '{command}' reçue", 200
 
     return "Aucune commande reçue.", 400
+
+camera = cv2.VideoCapture(0)
+
+if not camera.isOpened():
+    raise RuntimeError("Impossible d'ouvrir la caméra. Essaye un autre index (0 ou 1).")
+
+def gen_frames():
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
+        else:
+            # Encode l'image en JPEG
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            # Stream en MJPEG
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(gen_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/capture-image', methods=['GET'])
+def capture_image():
+    success, frame = camera.read()
+    if not success:
+        return {'error': 'Erreur de capture'}, 500
+    # Encode en JPEG puis en base64
+    _, buffer = cv2.imencode('.jpg', frame)
+    img_base64 = base64.b64encode(buffer).decode('utf-8')
+    return {'image': 'data:image/jpeg;base64,' + img_base64}
 
 if __name__ == "__main__":
     try:

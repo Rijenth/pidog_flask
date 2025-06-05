@@ -18,12 +18,10 @@ function showMessage(message, duration = 4000) {
     }, duration);
 }
 
-function captureImage() {
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    return canvas.toDataURL('image/jpeg');
+async function captureImage() {
+    const res = await fetch('/capture-image');
+    const data = await res.json();
+    return data.image;
 }
 
 async function sendToServer(endpoint, payload) {
