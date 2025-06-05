@@ -52,7 +52,7 @@ button {
 
 #startBtn { background-color: #198754; color: white; }
 #stopBtn { background-color: #dc3545; color: white; }
-#patrolToggleBtn {
+#patrolToggleBtn, #awakeDog {
     color: white;
     background-color: #198754; /* changera dynamiquement */
 }
