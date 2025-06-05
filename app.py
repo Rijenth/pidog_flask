@@ -48,18 +48,15 @@ def detect_face():
     if not data_url:
         return jsonify({"error": "No image provided"}), 400
 
-    # Extraire l’image base64
-    header, encoded = data_url.split(",", 1)
-    img_data = base64.b64decode(encoded)
-    nparr = np.frombuffer(img_data, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    # Décodage de l'image au format RGB (format requis par face_recognition)
+    image = decode_image_from_base64(data_url)
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    # Détection des visages
+    face_locations = face_recognition.face_locations(image, model='hog')  # ou 'cnn' si GPU / CPU puissant
 
     return jsonify({
-        "faces_detected": len(faces),
-        "someone_present": len(faces) > 0
+        "faces_detected": len(face_locations),
+        "someone_present": len(face_locations) > 0
     })
 
 
