@@ -4,6 +4,7 @@ let intruderCount = 0;
 let cameraStream = null;
 let isPatrolRunning = false;
 let isCameraRunning = false;
+let dogIsAwake = false;
 
 const video = document.getElementById('camera');
 const infoBox = document.getElementById("infoBox");
@@ -36,6 +37,19 @@ async function sendToServer(endpoint, payload) {
 
 const patrolBtn = document.getElementById("patrolToggleBtn");
 const cameraBtn = document.getElementById("cameraToggleBtn");
+const awakeBtn = document.getElementById("awakeDog");
+
+awakeBtn.addEventListener("click", async() => {
+    const command = dogIsAwake ? 'sleep-dog' : 'awake-dog';
+    const res = await fetch("/awake", {
+            method: "POST",
+            body: new URLSearchParams({ command: command}),
+        });
+    showMessage(await res.text());
+    awakeBtn.textContent = dogIsAwake ? "Arrêter PiDog" : "Éveiller PiDog";
+    awakeBtn.style.backgroundColor = dogIsAwake ? "#dc3545" :  "#198754";
+    dogIsAwake = !dogIsAwake;
+})
 
 patrolBtn.addEventListener("click", async () => {
     if (!isPatrolRunning) {

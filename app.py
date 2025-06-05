@@ -5,14 +5,20 @@ import os
 import logging
 import cv2
 
-from pidog import Pidog
-from preset_actions import pant
-from preset_actions import body_twisting
-from time import sleep
+# Conditionnelle : Activer l'utilisation de Pidog si USE_PIDOG est à true
+USE_PIDOG = os.environ.get("USE_PIDOG", "false").lower() == "true"
+if USE_PIDOG:
+    from pidog import Pidog
+    from preset_actions import pant
+    from preset_actions import body_twisting
+    from time import sleep
+    my_dog = Pidog(head_init_angles=[0, 0, -30])
+    sleep(1)
+else:
+    my_dog = None
+    print("⚠️  Pidog désactivé : robot non initialisé.")
 
 app = Flask(__name__)
-my_dog = Pidog(head_init_angles=[0, 0, -30])
-sleep(1)
 
 # Répertoire des visages connus
 KNOWN_FACE_DIR = "known_faces"
@@ -35,9 +41,11 @@ def index():
 
 
 # Robot -> 
-
-
 def wake_up():
+    if not USE_PIDOG or not my_dog:
+        print("🛑 wake_up() appelé sans robot actif.")
+        return
+
     # stretch
     #my_dog.rgb_strip.set_mode('listen', color='yellow', bps=0.6, brightness=0.8)
     my_dog.do_action('stretch', speed=50)
@@ -58,29 +66,36 @@ def wake_up():
     # hold
     my_dog.do_action('wag_tail', step_count=10, speed=30)
     #my_dog.rgb_strip.set_mode('breath', 'pink', bps=0.5)
-    while True:
-        sleep(1)
+    # while True:
+    #     sleep(1)
 
 @app.route("/send-command", methods=["POST"])
 def send_command():
     command = request.form.get("command")
+
     match command:
-        case 'start-patrol':
+        case 'awake-dog':
             wake_up()
+            return 'awake-dog', 200;
+
+        case 'sleep-dog':
+            return 'sleep-dog', 200;
+
+        case 'start-patrol':
             return 'start patrol function', 200
-        
+
         case 'stop-patrol':
             return 'stop patrol function', 200
-        
+
         case 'start-camera':
             return 'start-camera', 200
-        
+
         case 'stop-camera':
             return 'stop-camera', 200
-        
+
         case str() if command:
             return f"Commande '{command}' reçue", 200
-        
+
     return "Aucune commande reçue.", 400
 
 if __name__ == "__main__":
@@ -89,4 +104,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        my_dog.close()
+        if USE_PIDOG and my_dog:
+            my_dog.close()
