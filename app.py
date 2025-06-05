@@ -61,12 +61,13 @@ def wake_up():
     while True:
         sleep(1)
 
+wake_up()
+
 @app.route("/send-command", methods=["POST"])
 def send_command():
     command = request.form.get("command")
     match command:
         case 'start-patrol':
-            wake_up()
             return 'start patrol function', 200
         
         case 'stop-patrol':
