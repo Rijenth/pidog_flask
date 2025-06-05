@@ -84,4 +84,9 @@ def send_command():
     return "Aucune commande reçue.", 400
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8888, debug=True)
+    try:
+        app.run(host="0.0.0.0", port=8888)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        my_dog.close()
