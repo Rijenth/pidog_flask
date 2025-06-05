@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from routes.face_routes import face_bp
+#from routes.face_routes import face_bp
 #from routes.command_routes import command_bp
 import os
 import logging
@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO, filename='dog.log', filemode='a',
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 # Routes
-app.register_blueprint(face_bp)
+#app.register_blueprint(face_bp)
 #app.register_blueprint(command_bp)
 
 @app.route("/", methods=["GET"])
