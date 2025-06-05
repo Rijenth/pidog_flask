@@ -11,6 +11,8 @@ from preset_actions import body_twisting
 from time import sleep
 
 app = Flask(__name__)
+my_dog = Pidog(head_init_angles=[0, 0, -30])
+sleep(1)
 
 # Répertoire des visages connus
 KNOWN_FACE_DIR = "known_faces"
@@ -33,8 +35,7 @@ def index():
 
 
 # Robot -> 
-my_dog = Pidog(head_init_angles=[0, 0, -30])
-sleep(1)
+
 
 def wake_up():
     # stretch
