@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
 from utils.image_utils import decode_image_from_base64, save_face_encoding, load_known_faces
 import face_recognition
+import os
 
 face_bp = Blueprint("faces", __name__)
+KNOWN_FACE_DIR = "known_faces"
 
 @face_bp.route("/detect-face", methods=["POST"])
 def detect_face():
@@ -57,3 +59,23 @@ def recognize():
             return jsonify({"status": "authorized", "person": name})
 
     return jsonify({"status": "intruder"})
+
+
+@face_bp.route("/list-faces", methods=["GET"])
+def list_faces():
+    faces = [f.replace(".npy", "") for f in os.listdir(KNOWN_FACE_DIR) if f.endswith(".npy")]
+    return jsonify(faces)
+
+@face_bp.route("/delete-face", methods=["POST"])
+def delete_face():
+    data = request.json
+    name = data.get("name")
+    if not name:
+        return jsonify({"error": "Nom manquant"}), 400
+
+    file_path = os.path.join(KNOWN_FACE_DIR, f"{name}.npy")
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return jsonify({"status": "deleted", "name": name})
+    else:
+        return jsonify({"error": "Fichier introuvable"}), 404

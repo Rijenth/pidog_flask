@@ -30,3 +30,18 @@ def recognize():
         json = request.json
     )
     return response.json()
+
+@face_bp.route("/list-faces", methods=["GET"])
+def list_faces():
+    response = requests.get("http://15.237.33.168:8890/list-faces")
+
+    return response.json()
+
+@face_bp.route("/delete-face", methods=["POST"])
+def delete_face():
+    response = requests.post(
+        "http://15.237.33.168:8890/delete-face",
+        json = request.json
+    )
+
+    return response
