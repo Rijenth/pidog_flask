@@ -5,6 +5,7 @@ let cameraStream = null;
 let isPatrolRunning = false;
 let isCameraRunning = false;
 let dogIsAwake = false;
+const faceList = document.getElementById('faceList');
 
 const video = document.getElementById('camera');
 const infoBox = document.getElementById("infoBox");
@@ -101,6 +102,7 @@ document.getElementById("addFaceBtn").addEventListener("click", async () => {
     const res = await sendToServer("/add-face", { name, image });
     if (res.status === "saved") {
     showMessage(`✅ Visage de ${res.name} enregistré`);
+    refreshFaceList();
     } else {
     showMessage("❌ Erreur : " + (res.error || "Inconnue"), 5000);
     }
@@ -126,3 +128,53 @@ setInterval(() => {
     intruderCount += Math.random() < 0.2 ? 1 : 0;
     document.getElementById("intruderCount").value = intruderCount;
 }, 10000);
+
+async function refreshFaceList() {
+    const res = await fetch('/list-faces');
+    const names = await res.json();
+    faceList.innerHTML = '';
+
+    if (!names.length) {
+        const li = document.createElement('li');
+        li.textContent = 'Aucun visage enregistré';
+        li.style.fontStyle = 'italic';
+        faceList.appendChild(li);
+        return;
+    }
+
+    names.forEach((name) => {
+        const li = document.createElement('li');
+
+        const span = document.createElement('span');
+        span.textContent = name;
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Supprimer';
+        delBtn.className = 'face-delete-btn';
+        delBtn.addEventListener('click', () => handleDeleteFace(name));
+
+        li.appendChild(span);
+        li.appendChild(delBtn);
+        faceList.appendChild(li);
+    });
+}
+
+async function handleDeleteFace(name) {
+    if (!confirm(`Supprimer le visage de ${name} ?`)) return;
+
+    const res = await fetch('/delete-face', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+        showMessage(`❌ Visage supprimé : ${result.name}`);
+        refreshFaceList();
+    } else {
+        showMessage('Erreur suppression : ' + (result.error || 'inconnue'));
+    }
+}
+
+refreshFaceList();

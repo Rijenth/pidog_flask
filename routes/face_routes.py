@@ -44,4 +44,4 @@ def delete_face():
         json = request.json
     )
 
-    return response
+    return response.json()

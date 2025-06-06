@@ -107,3 +107,43 @@ input[type="text"], input[readonly] {
     background-color: #0d6efd;
     color: white;
 }
+
+ #faceList {
+    background:#f8f9fa; padding:0.75rem; border-radius:6px; margin:0;
+    list-style: none;
+}
+
+#faceList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+#faceList li span {
+  display: block;
+}
+
+.face-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: initial;
+  background-color: #dc3545;
+  border: none;
+  color: white;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.face-delete-btn:hover {
+  background-color: #b02a37;
+}
