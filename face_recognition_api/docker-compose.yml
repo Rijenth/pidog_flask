@@ -1,0 +1,7 @@
+services:
+    web:
+        build: .
+        ports:
+            - '8890:8890'
+        volumes:
+            - ./templates:/app/templates:ro

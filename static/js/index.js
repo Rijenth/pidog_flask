@@ -34,7 +34,6 @@ async function sendToServer(endpoint, payload) {
 }
 
 const patrolBtn = document.getElementById("patrolToggleBtn");
-const cameraBtn = document.getElementById("cameraToggleBtn");
 const awakeBtn = document.getElementById("awakeDog");
 
 awakeBtn.addEventListener("click", async() => {
@@ -84,33 +83,9 @@ patrolBtn.addEventListener("click", async () => {
     }
 });
 
-cameraBtn.addEventListener("click", async () => {
-    if (!isCameraRunning) {
-    try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = cameraStream;
-        video.play();
-        showMessage("Caméra démarrée !");
-        cameraBtn.textContent = "⛔ Stopper la caméra";
-        cameraBtn.style.backgroundColor = "#dc3545";
-        isCameraRunning = true;
-    } catch (err) {
-        showMessage("❌ Erreur caméra : " + err.message, 6000);
-    }
-    } else {
-    cameraStream.getTracks().forEach(track => track.stop());
-    video.srcObject = null;
-    cameraStream = null;
-    showMessage("Caméra arrêtée.");
-    cameraBtn.textContent = "🎥 Démarrer la caméra";
-    cameraBtn.style.backgroundColor = "#0d6efd";
-    isCameraRunning = false;
-    }
-});
-
-
 document.getElementById("detectFaceBtn").addEventListener("click", async () => {
-    const image = captureImage();
+    const image = await captureImage();
+    console.log("image: " , image)
     const res = await sendToServer("/detect-face", { image });
     if (res.someone_present) {
     showMessage(`👤 Présence détectée (${res.faces_detected} visage(s))`);
@@ -122,7 +97,7 @@ document.getElementById("detectFaceBtn").addEventListener("click", async () => {
 document.getElementById("addFaceBtn").addEventListener("click", async () => {
     const name = document.getElementById("addName").value.trim();
     if (!name) return showMessage("⚠️ Veuillez entrer un nom.");
-    const image = captureImage();
+    const image = await captureImage();
     const res = await sendToServer("/add-face", { name, image });
     if (res.status === "saved") {
     showMessage(`✅ Visage de ${res.name} enregistré`);
@@ -133,7 +108,7 @@ document.getElementById("addFaceBtn").addEventListener("click", async () => {
 });
 
 document.getElementById("recognizeBtn").addEventListener("click", async () => {
-    const image = captureImage();
+    const image = await captureImage();
     const res = await sendToServer("/recognize", { image });
     if (res.status === "authorized") {
     showMessage(`✅ Visage reconnu : ${res.person}`);

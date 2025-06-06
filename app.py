@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, Response
-#from routes.face_routes import face_bp
+from routes.face_routes import face_bp
 from routes.command_routes import command_bp
 from robot import close_dog, PIDOG_AVAILABLE  # appel indirect à pidog
 import os
@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO, filename='dog.log', filemode='a',
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 # Routes
-#app.register_blueprint(face_bp)
+app.register_blueprint(face_bp)
 app.register_blueprint(command_bp)
 
 @app.route("/", methods=["GET"])
@@ -64,7 +64,7 @@ def capture_image():
 
 if __name__ == "__main__":
     try:
-        app.run(host="0.0.0.0", port=8888)
+        app.run(host="0.0.0.0", port=8888, debug=True)
     except KeyboardInterrupt:
         pass
     finally:
