@@ -8,7 +8,7 @@ face_bp = Blueprint("faces", __name__)
 @face_bp.route("/detect-face", methods=["POST"])
 def detect_face():
     response = requests.post(
-        "http://localhost:8890/detect-face",
+        "http://15.237.33.168:8890/detect-face",
         json = request.json
     )
     return response.json()
@@ -17,7 +17,7 @@ def detect_face():
 @face_bp.route("/add-face", methods=["POST"])
 def add_face():
     response = requests.post(
-        "http://localhost:8890/add-face",
+        "http://15.237.33.168:8890/add-face",
         json = request.json
     )
     return response.json()
@@ -26,7 +26,7 @@ def add_face():
 @face_bp.route("/recognize", methods=["POST"])
 def recognize():
     response = requests.post(
-        "http://localhost:8890/recognize",
+        "http://15.237.33.168:8890/recognize",
         json = request.json
     )
     return response.json()
